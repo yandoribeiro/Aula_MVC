@@ -1,63 +1,70 @@
-const User = require('../models/userModel');
+// controllers/userController.js
 
-// Controlador para obter todos os usuários
-exports.getAllUsers = async (req, res) => {
+const userService = require('../services/userService');
+
+const getAllUsers = async (req, res) => {
   try {
-    const users = await User.getAll();
-    res.json(users);
+    const users = await userService.getAllUsers();
+    res.status(200).json(users);
   } catch (error) {
-    res.status(500).json({ message: 'Erro ao obter usuários', error });
+    res.status(500).json({ error: error.message });
   }
 };
 
-// Controlador para obter um usuário pelo ID
-exports.getUserById = async (req, res) => {
+const getUserById = async (req, res) => {
   try {
-    const user = await User.getById(req.params.id);
+    const user = await userService.getUserById(req.params.id);
     if (user) {
-      res.json(user);
+      res.status(200).json(user);
     } else {
-      res.status(404).json({ message: 'Usuário não encontrado' });
+      res.status(404).json({ error: 'Usuário não encontrado' });
     }
   } catch (error) {
-    res.status(500).json({ message: 'Erro ao obter usuário', error });
+    res.status(500).json({ error: error.message });
   }
 };
 
-// Controlador para criar um novo usuário
-exports.createUser = async (req, res) => {
+const createUser = async (req, res) => {
   try {
-    const newUser = await User.create(req.body);
+    const { name, email } = req.body;
+    const newUser = await userService.createUser(name, email);
     res.status(201).json(newUser);
   } catch (error) {
-    res.status(500).json({ message: 'Erro ao criar usuário', error });
+    res.status(500).json({ error: error.message });
   }
 };
 
-// Controlador para atualizar um usuário
-exports.updateUser = async (req, res) => {
+const updateUser = async (req, res) => {
   try {
-    const updatedUser = await User.update(req.params.id, req.body);
+    const { name, email } = req.body;
+    const updatedUser = await userService.updateUser(req.params.id, name, email);
     if (updatedUser) {
-      res.json(updatedUser);
+      res.status(200).json(updatedUser);
     } else {
-      res.status(404).json({ message: 'Usuário não encontrado' });
+      res.status(404).json({ error: 'Usuário não encontrado' });
     }
   } catch (error) {
-    res.status(500).json({ message: 'Erro ao atualizar usuário', error });
+    res.status(500).json({ error: error.message });
   }
 };
 
-// Controlador para deletar um usuário
-exports.deleteUser = async (req, res) => {
+const deleteUser = async (req, res) => {
   try {
-    const isDeleted = await User.delete(req.params.id);
-    if (isDeleted) {
-      res.json({ message: 'Usuário deletado' });
+    const deletedUser = await userService.deleteUser(req.params.id);
+    if (deletedUser) {
+      res.status(200).json(deletedUser);
     } else {
-      res.status(404).json({ message: 'Usuário não encontrado' });
+      res.status(404).json({ error: 'Usuário não encontrado' });
     }
   } catch (error) {
-    res.status(500).json({ message: 'Erro ao deletar usuário', error });
+    res.status(500).json({ error: error.message });
   }
+};
+
+module.exports = {
+  getAllUsers,
+  getUserById,
+  createUser,
+  updateUser,
+  deleteUser
 };

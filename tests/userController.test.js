@@ -1,49 +1,71 @@
+// tests/userController.test.js
+
 const userController = require('../controllers/userController');
-const User = require('../models/userModel');
+const userService = require('../services/userService');
 
-jest.mock('../models/userModel');
+jest.mock('../services/userService');
 
-describe('User Controller', () => {
-  test('deve obter todos os usuários', async () => {
-    const req = {};
-    const res = {
-      json: jest.fn(),
+describe('userController', () => {
+  let req, res;
+
+  beforeEach(() => {
+    req = {};
+    res = {
       status: jest.fn().mockReturnThis(),
+      json: jest.fn(),
     };
+  });
 
-    User.getAll.mockResolvedValue([{ id: 1, name: 'John Doe', email: 'john@example.com' }]);
-    
+  test('getAllUsers deve retornar todos os usuários', async () => {
+    const mockUsers = [
+      { id: '1', name: 'John Doe', email: 'john@example.com' },
+      { id: '2', name: 'Jane Doe', email: 'jane@example.com' },
+    ];
+    userService.getAllUsers.mockResolvedValueOnce(mockUsers);
+
     await userController.getAllUsers(req, res);
-    
-    expect(res.json).toHaveBeenCalledWith([{ id: 1, name: 'John Doe', email: 'john@example.com' }]);
+    expect(res.status).toHaveBeenCalledWith(200);
+    expect(res.json).toHaveBeenCalledWith(mockUsers);
   });
 
-  test('deve obter um usuário pelo ID', async () => {
-    const req = { params: { id: 1 } };
-    const res = {
-      json: jest.fn(),
-      status: jest.fn().mockReturnThis(),
-    };
-
-    User.getById.mockResolvedValue({ id: 1, name: 'John Doe', email: 'john@example.com' });
+  test('getUserById deve retornar o usuário correto', async () => {
+    const mockUser = { id: '1', name: 'John Doe', email: 'john@example.com' };
+    req.params = { id: '1' };
+    userService.getUserById.mockResolvedValueOnce(mockUser);
 
     await userController.getUserById(req, res);
-
-    expect(res.json).toHaveBeenCalledWith({ id: 1, name: 'John Doe', email: 'john@example.com' });
+    expect(res.status).toHaveBeenCalledWith(200);
+    expect(res.json).toHaveBeenCalledWith(mockUser);
   });
 
-  test('deve retornar 404 quando o usuário não for encontrado', async () => {
-    const req = { params: { id: 2 } };
-    const res = {
-      json: jest.fn(),
-      status: jest.fn().mockReturnThis(),
-    };
+  test('createUser deve criar um novo usuário', async () => {
+    const newUser = { id: '1', name: 'John Doe', email: 'john@example.com' };
+    req.body = { name: 'John Doe', email: 'john@example.com' };
+    userService.createUser.mockResolvedValueOnce(newUser);
 
-    User.getById.mockResolvedValue(null);
+    await userController.createUser(req, res);
+    expect(res.status).toHaveBeenCalledWith(201);
+    expect(res.json).toHaveBeenCalledWith(newUser);
+  });
 
-    await userController.getUserById(req, res);
+  test('updateUser deve atualizar um usuário', async () => {
+    const updatedUser = { id: '1', name: 'John Doe', email: 'john_updated@example.com' };
+    req.params = { id: '1' };
+    req.body = { name: 'John Doe', email: 'john_updated@example.com' };
+    userService.updateUser.mockResolvedValueOnce(updatedUser);
 
-    expect(res.status).toHaveBeenCalledWith(404);
-    expect(res.json).toHaveBeenCalledWith({ message: 'Usuário não encontrado' });
+    await userController.updateUser(req, res);
+    expect(res.status).toHaveBeenCalledWith(200);
+    expect(res.json).toHaveBeenCalledWith(updatedUser);
+  });
+
+  test('deleteUser deve deletar um usuário', async () => {
+    const deletedUser = { id: '1', name: 'John Doe', email: 'john@example.com' };
+    req.params = { id: '1' };
+    userService.deleteUser.mockResolvedValueOnce(deletedUser);
+
+    await userController.deleteUser(req, res);
+    expect(res.status).toHaveBeenCalledWith(200);
+    expect(res.json).toHaveBeenCalledWith(deletedUser);
   });
 });
